@@ -1,0 +1,2 @@
+You can use this Makefile for Hw2.
+It is assumed that your having four source files p1.cc, p2.cc, p3.cc, p4.cc, as well as image.h and image.cc (note thad DisjSets.h and DisjSets.cc is also assumed to be used - if you are not using DisjSets, then delete the DisjSets.o from the Makefile line CC_OBJ_2=...). If you want to add other source files you can do so by modifying the Makefile. But you should keep at least the files listed here.
