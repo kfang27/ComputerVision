@@ -23,8 +23,9 @@ void ComputeObjectAttributes(const Image &labeled_image, const string &output_fi
         int area = 0;
         double sum_row = 0;
         double sum_col = 0;
-        double sum_ii = 0; // For moment of inertia
-        double sum_xy = 0; // For calculating orientation moments
+        double sum_xx = 0; // For calculating inertia
+        double sum_yy = 0; // For calculating inertia
+        double sum_xy = 0; // For calculating cross moment
 
         // Iterate through the image to find pixels belonging to the current object
         for (int i = 0; i < rows; ++i) {
@@ -34,11 +35,11 @@ void ComputeObjectAttributes(const Image &labeled_image, const string &output_fi
                     sum_row += i;
                     sum_col += j;
 
-                    // Calculate moments for inertia and orientation
-                    double x_diff = i - (sum_row / area);
-                    double y_diff = j - (sum_col / area);
-                    sum_ii += (x_diff * x_diff); // Update for Emin
-                    sum_xy += (x_diff * y_diff);
+                    double x_diff = i; // y-coordinate
+                    double y_diff = j; // x-coordinate
+                    sum_xx += (x_diff * x_diff); // Sum of y^2
+                    sum_yy += (y_diff * y_diff); // Sum of x^2
+                    sum_xy += (x_diff * y_diff); // Sum of xy
                 }
             }
         }
@@ -46,11 +47,29 @@ void ComputeObjectAttributes(const Image &labeled_image, const string &output_fi
         if (area > 0) {
             double center_row = sum_row / area;
             double center_col = sum_col / area;
-            double Emin = sum_ii / area; // Minimum moment of inertia
-            double roundedness = (4 * M_PI * area) / (pow(area, 2)); // Roundedness formula
-            double orientation = atan2(2 * sum_xy, sum_ii) * (180.0 / M_PI); // Orientation in degrees
 
-            attributes.emplace_back(label, center_row, center_col, Emin, area, roundedness, orientation);
+            // Calculate a, b, and c for E_min and E_max
+            double a = sum_xx / area; // Average of y^2
+            double b = sum_xy / area; // Average of xy
+            double c = sum_yy / area; // Average of x^2
+
+            // Calculate theta1 in radians
+            double theta1 = atan2(b, a - c) / 2.0;
+
+            // Calculate E_min
+            double e_min = a * sin(theta1) * sin(theta1) - b * sin(theta1) * cos(theta1) + c * cos(theta1) * cos(theta1);
+
+            // Calculate theta2
+            double theta2 = theta1 + M_PI / 2.0;
+
+            // Calculate E_max
+            double e_max = a * sin(theta2) * sin(theta2) - b * sin(theta2) * cos(theta2) + c * cos(theta2) * cos(theta2);
+
+            // Calculate roundedness
+            double roundness = (e_max != 0) ? (e_min / e_max) : 0.0; // Prevent division by zero
+
+            // Store attributes
+            attributes.emplace_back(label, center_row, center_col, e_min, area, roundness, theta1 * (180.0 / M_PI)); // Store angle in degrees
         }
     }
 
@@ -92,6 +111,7 @@ void ComputeObjectAttributes(const Image &labeled_image, const string &output_fi
         }
     }
 }
+
 
 // Main function
 int main(int argc, char* argv[]) {
