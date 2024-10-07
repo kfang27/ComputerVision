@@ -33,8 +33,8 @@ $(PROGRAM_NAME_1): $(CC_OBJ_1)
 	g++ $(C++FLAG) -o $(EXEC_DIR)/$@ $(CC_OBJ_1) $(INCLUDES) $(LIBS_ALL)
 
 # P2
-CC_OBJ_2=image.o DisjSets.o p2.o
-
+CC_OBJ_2=image.o p2.o
+#CC_OBJ_2=image.o DisjSets.o p2.o
 PROGRAM_NAME_2=p2
 
 $(PROGRAM_NAME_2): $(CC_OBJ_2)
