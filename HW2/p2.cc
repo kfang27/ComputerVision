@@ -1,3 +1,16 @@
+/*
+Name: Kevin Fang
+File: p2.cc
+Description:
+    The program, p2.cc, is supposed to segment a binary image (that was
+    produced from p1.cc) into several connected regions. Each object region
+    is supposed to be painted with a different gray-level.
+    The gray–level assigned to an object is its label.
+
+To run this program after compiling with the makefile (make all):
+    ./p2 <input_binary_image.pgm> <labeled_image.pgm>
+    Ex: ./p2 binary_two_objects.pgm labeled_two_objects.pgm
+*/
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -6,7 +19,6 @@
 using namespace std;
 using namespace ComputerVisionProjects;
 
-// Helper function to find the root label (for equivalence resolution)
 int findLabel(int label, unordered_map<int, int>& label_equiv) {
     while (label != label_equiv[label]) {
         label = label_equiv[label];
@@ -14,28 +26,27 @@ int findLabel(int label, unordered_map<int, int>& label_equiv) {
     return label;
 }
 
-// Helper function to union two labels
 void unionLabels(int label1, int label2, unordered_map<int, int>& label_equiv) {
     int root1 = findLabel(label1, label_equiv);
     int root2 = findLabel(label2, label_equiv);
     if (root1 != root2) {
-        label_equiv[root2] = root1; // Union by setting one root to another
+        label_equiv[root2] = root1;
     }
 }
 
 void SegmentImage(const Image &input_image, Image &output_image) {
-    int current_label = 1; // Start labeling from 1
-    unordered_map<int, int> label_equiv; // Tracks label equivalences
+    int current_label = 1;
+    unordered_map<int, int> label_equiv;
 
     int rows = input_image.num_rows();
     int cols = input_image.num_columns();
     output_image.AllocateSpaceAndSetSize(rows, cols);
-    output_image.SetNumberGrayLevels(255); // Max gray level for labeled image
+    output_image.SetNumberGrayLevels(255);
 
-    // First pass: Assign provisional labels
+    // First pass
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            if (input_image.GetPixel(i, j) == 0) { // Background pixel
+            if (input_image.GetPixel(i, j) == 0) {
                 output_image.SetPixel(i, j, 0);
                 continue;
             }
@@ -44,9 +55,8 @@ void SegmentImage(const Image &input_image, Image &output_image) {
             int top_label = (i > 0) ? output_image.GetPixel(i - 1, j) : 0;
 
             if (left_label == 0 && top_label == 0) {
-                // New object, assign a new label
                 output_image.SetPixel(i, j, current_label);
-                label_equiv[current_label] = current_label; // Initialize equivalence map
+                label_equiv[current_label] = current_label;
                 ++current_label;
             } else if (left_label != 0 && top_label == 0) {
                 // Label according to left neighbor
@@ -65,7 +75,7 @@ void SegmentImage(const Image &input_image, Image &output_image) {
         }
     }
 
-    // Second pass: Resolve label equivalences
+    // Second pass
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             int label = output_image.GetPixel(i, j);
