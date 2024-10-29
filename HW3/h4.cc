@@ -1,3 +1,24 @@
+/*
+Name: Kevin Fang
+File: h4.cc
+Description:
+    The program, h4.cc, is supposed to detect lines in the original gray-level image
+    by looking at the Hough Transform space (that was generated in h3.cc) and drawing
+    the identified lines onto the original image. Given a Hough voting array and a
+    user-input threshold, the program should filter the Hough space to find areas with
+    high voting concentrations, where each is supposed to represent a potential line within the image.
+
+    The program also uses the weighted average approach to find a "center" of each bright area,
+    that is supposed to represent the line's parameters. Then it draws the detected lines onto
+    the output image. These lines are drawn in a gray color (can be adjusted in the SetPixel parameters).
+
+Compile with:
+    g++ h4.cc image.cc -o h4
+
+To run this program after compiling:
+    ./h4 <input original gray-level image> <input Hough-voting array txt file> <threshold> <output gray-level line image>
+    Ex: ./h4 hough_simple_1.pgm output_array.txt 290 output_grayline.pgm
+*/
 #include "image.h"
 #include <iostream>
 #include <fstream>
@@ -20,12 +41,11 @@ void ApplyThreshold(vector<vector<int>> &accumulator, int rho_bins, int theta_bi
     }
 }
 
-// Function to calculate weighted center of bright areas in Hough space
+// This function is used to calculate weighted center of bright areas in Hough space
 void CalculateWeightedCenter(const vector<vector<int>> &accumulator, int rho_bins, int theta_bins, vector<pair<int, int>> &line_parameters) {
     for (int r = 0; r < rho_bins; ++r) {
         for (int t = 0; t < theta_bins; ++t) {
             if (accumulator[r][t] > 0) {
-                // Weighted center calculations
                 int weighted_sum_x = 0, weighted_sum_y = 0, total_weight = 0;
                 
                 for (int dr = -1; dr <= 1; ++dr) {
@@ -59,21 +79,20 @@ void DrawLines(Image &image, const vector<pair<int, int>> &line_parameters, int 
         int rho = params.first - max_rho;
         double theta = params.second * M_PI / 180.0;
 
-        // Convert polar coordinates (rho, theta) to Cartesian line
         double cos_theta = cos(theta);
         double sin_theta = sin(theta);
 
         for (int x = 0; x < width; ++x) {
             int y = static_cast<int>((rho - x * cos_theta) / sin_theta);
             if (y >= 0 && y < height) {
-                image.SetPixel(y, x, 100);  // Draw line pixel in white
+                image.SetPixel(y, x, 100);  // Just change the number to adjust the gray-level color of the lines
             }
         }
 
         for (int y = 0; y < height; ++y) {
             int x = static_cast<int>((rho - y * sin_theta) / cos_theta);
             if (x >= 0 && x < width) {
-                image.SetPixel(y, x, 100);  // Draw line pixel in white
+                image.SetPixel(y, x, 100);  // Just change the number to adjust the gray-level color of the lines
             }
         }
     }
@@ -90,7 +109,6 @@ int main(int argc, char **argv) {
     const int threshold = stoi(argv[3]);
     const string output_filename(argv[4]);
 
-    // Load original gray-level image
     Image original_image;
     if (!ReadImage(input_filename, &original_image)) {
         cerr << "Error reading original image.\n";

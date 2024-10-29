@@ -1,3 +1,18 @@
+/*
+Name: Kevin Fang
+File: h3.cc
+Description:
+    The program, h3.cc, performs Hough Transform on a input binary edge image
+    to detect lines and outputs a gray-level Hough space image and a Hough-voting
+    array txt file.
+
+Compile with:
+    g++ h3.cc image.cc -o h3
+
+To run this program after compiling:
+    ./h3 <input binary edge image> <output gray-level Hough image> <output Hough-voting array txt file>
+    Ex: ./h3 output_binary.pgm output_gray_hough.pgm output_array.txt
+*/
 #include "image.h"
 #include <iostream>
 #include <cmath>
@@ -19,7 +34,6 @@ int main(int argc, char **argv) {
     const string output_filename(argv[2]);
     const string voting_array_filename(argv[3]);
 
-    // Load the input binary edge image
     Image edge_image;
     if (!ReadImage(input_filename, &edge_image)) {
         cerr << "Error reading input edge image.\n";
@@ -52,7 +66,7 @@ int main(int argc, char **argv) {
 
     // Create the Hough image based on the accumulator array
     Image hough_image;
-    hough_image.AllocateSpaceAndSetSize(theta_bins, rho_bins); // Ensure width and height are correctly set
+    hough_image.AllocateSpaceAndSetSize(theta_bins, rho_bins);
     hough_image.SetNumberGrayLevels(255);
 
     int max_votes = 0;
@@ -66,17 +80,16 @@ int main(int argc, char **argv) {
     for (int r = 0; r < rho_bins; ++r) {
         for (int t = 0; t < theta_bins; ++t) {
             int intensity = static_cast<int>(255.0 * accumulator[r][t] / max_votes);
-            hough_image.SetPixel(t, r, intensity); // Use (t, r) to set the pixel correctly
+            hough_image.SetPixel(t, r, intensity);
         }
     }
 
-    // Write Hough space image
     if (!WriteImage(output_filename, hough_image)) {
         cerr << "Error writing Hough image.\n";
         return 1;
     }
 
-    // Write voting array to output file
+    // This part is writing the voting array to a file
     ofstream voting_array_file(voting_array_filename);
     if (!voting_array_file) {
         cerr << "Error opening voting array output file.\n";
@@ -89,6 +102,7 @@ int main(int argc, char **argv) {
         voting_array_file << "\n";
     }
 
+    // Message in terminal to make sure the program actually ran and created the output files
     cout << "Hough Transform completed. Output saved to " << output_filename << " and " << voting_array_filename << ".\n";
     return 0;
 }

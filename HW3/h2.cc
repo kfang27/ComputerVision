@@ -2,13 +2,18 @@
 Name: Kevin Fang
 File: h2.cc
 Description:
+    The same as p1.cc as it was copy-pasted over from last assignment.
+
     The program, h2.cc, is supposed to convert a gray-level image 
     into a binary image (image will just be in the colors, black and white)
     while using a given user-input threshold value.
 
-To run this program after compiling with the makefile (make all):
-    ./p1 <input_image.pgm> <threshold> <binary_image.pgm>
-    Ex: ./p1 two_objects.pgm 128 binary_two_objects.pgm
+Compile with:
+    g++ h2.cc image.cc -o h2
+
+To run this program after compiling:
+    ./h2 <input gray-level EDGE image> <threshold> <output binary edge image>
+    Ex: ./h2 output_gray_edge.pgm 50 output_binary.pgm
 */
 #include <iostream>
 #include "image.h"

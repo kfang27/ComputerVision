@@ -1,3 +1,24 @@
+/*
+Name: Kevin Fang
+File: h1.cc
+Description:
+    The program, h1.cc, is supposed to perform edge detection on an
+    input gray-level image by using the Sobel operator, which detects edges
+    by calculating the gradient magnitude at each pixel.
+    Areas of high intensity change are supposed to correspond to edges in the image.
+
+    Then, for each pixel, the program will calculate the gradient in both x and y directions, and
+    compute the overall gradient magnitude with those values.
+    The resulting edge intensities are then stored in a new image, where the stronger edges
+    should appear as brighter pixels (should be whiter). 
+
+Compile with:
+g++ h1.cc image.cc -o h1
+
+To run this program after compiling:
+    ./h1 <input gray-level image> <output gray-level edge image>
+    Ex: ./h1 hough_simple_1.pgm output_gray_edge.pgm
+*/
 #include "image.h"
 #include <iostream>
 #include <cmath>
@@ -13,19 +34,18 @@ int main(int argc, char **argv) {
     const std::string input_filename(argv[1]);
     const std::string output_filename(argv[2]);
 
-    // Load the input image
     Image input_image;
     if (!ReadImage(input_filename, &input_image)) {
         std::cerr << "Error reading input image file.\n";
         return 1;
     }
 
-    // Prepare the output image with the same size as the input
+    // This is to prepare the output image with the same size as the input image
     Image output_image;
     output_image.AllocateSpaceAndSetSize(input_image.num_rows(), input_image.num_columns());
     output_image.SetNumberGrayLevels(255);
 
-    // Define Sobel kernels
+    // Sobel kernels
     int Gx[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
     int Gy[3][3] = {{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
 
@@ -44,16 +64,13 @@ int main(int argc, char **argv) {
             }
         }
 
-        // Compute the gradient magnitude
         int gradient_magnitude = gradient_x * gradient_x + gradient_y * gradient_y;
         int edge_intensity = std::min(255, static_cast<int>(std::sqrt(gradient_magnitude)));
 
-        // Set the calculated edge intensity in the output image
         output_image.SetPixel(i, j, edge_intensity);
         }
     }
 
-    // Write the edge-detected output image
     if (!WriteImage(output_filename, output_image)) {
         std::cerr << "Error writing output edge image file.\n";
         return 1;
