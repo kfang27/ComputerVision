@@ -1,8 +1,8 @@
 /*
 Name: Kevin Fang
-File: p1.cc
+File: h2.cc
 Description:
-    The program, p1.cc, is supposed to convert a gray-level image 
+    The program, h2.cc, is supposed to convert a gray-level image 
     into a binary image (image will just be in the colors, black and white)
     while using a given user-input threshold value.
 
