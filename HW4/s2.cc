@@ -7,14 +7,14 @@
 
 using namespace ComputerVisionProjects;
 
-// Function to compute the normal vector at a point (x, y) on the sphere's surface.
+// To compute the normal vector at a point (x, y) on the sphere's surface
 void ComputeNormal(int x, int y, int x_center, int y_center, double radius, double &nx, double &ny, double &nz) {
     nx = (x - x_center) / radius;
     ny = (y - y_center) / radius;
-    nz = std::sqrt(1.0 - nx * nx - ny * ny);  // Compute z component for unit normal vector
+    nz = std::sqrt(1.0 - nx * nx - ny * ny);
 }
 
-// Function to find the brightest pixel's coordinates and brightness in an image.
+// To find the brightest pixel's coordinates and brightness in an image
 void FindBrightestPixel(const Image &image, int &x, int &y, int &brightness) {
     brightness = -1;
     for (size_t i = 0; i < image.num_rows(); ++i) {
@@ -35,14 +35,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // File inputs
     const std::string parameters_filename(argv[1]);
     const std::string image_filename1(argv[2]);
     const std::string image_filename2(argv[3]);
     const std::string image_filename3(argv[4]);
     const std::string output_filename(argv[5]);
 
-    // Read sphere center and radius from parameters file.
+    // This part reads sphere center and radius from parameters file
     int x_center, y_center;
     double radius;
     std::ifstream param_file(parameters_filename);
@@ -52,11 +51,9 @@ int main(int argc, char *argv[]) {
     }
     param_file.close();
 
-    // Vector to store image filenames
     std::vector<std::string> image_filenames = {image_filename1, image_filename2, image_filename3};
-    std::vector<std::vector<double>> light_directions;  // To store the computed direction vectors
+    std::vector<std::vector<double>> light_directions;
 
-    // Process each image
     for (const auto &filename : image_filenames) {
         Image image;
         if (!ReadImage(filename, &image)) {
@@ -64,24 +61,19 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        // Find the brightest pixel in the image
         int x, y, brightness;
         FindBrightestPixel(image, x, y, brightness);
 
-        // Compute the normal vector at the brightest pixel
         double nx, ny, nz;
         ComputeNormal(x, y, x_center, y_center, radius, nx, ny, nz);
 
-        // Scale the normal vector by the brightness to represent the light source direction
         nx *= brightness;
         ny *= brightness;
         nz *= brightness;
 
-        // Store the direction vector
         light_directions.push_back({nx, ny, nz});
     }
 
-    // Write the directions to the output file
     std::ofstream output_file(output_filename);
     if (!output_file) {
         std::cerr << "Error opening output file.\n";
