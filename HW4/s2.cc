@@ -1,3 +1,21 @@
+/*
+Name: Kevin Fang
+File: s2.cc
+Description:
+    The program, s2.cc, is supposed to computes the directions and intensities of light sources in
+    three images of a sphere. Using the sphere's center and radius obtained from 
+    s1.cc, it calculates the normal vector to the sphere's surface at the 
+    brightest point in each image, which represents the direction of the light source. 
+    The brightness of the brightest pixel in each image is used to scale the normal 
+    vector, indicating the light source intensity.
+
+    For each image, the program outputs a direction vector with x-, y-, and z-components 
+    scaled by brightness, representing the light source direction and intensity.
+
+To run this program after compiling:
+    ./s2 <input parameters filename> <input sphere image 1 filename> <input sphere image 2 filename> <input sphere image 3 filename> <output directions filename>
+    Ex: ./s2 parameters.txt sphere1.pgm sphere2.pgm sphere3.pgm directions.txt
+*/
 #include "image.h"
 #include <iostream>
 #include <fstream>
@@ -74,6 +92,7 @@ int main(int argc, char *argv[]) {
         light_directions.push_back({nx, ny, nz});
     }
 
+    // For error encounters and messages within terminal
     std::ofstream output_file(output_filename);
     if (!output_file) {
         std::cerr << "Error opening output file.\n";

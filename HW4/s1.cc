@@ -1,3 +1,19 @@
+/*
+Name: Kevin Fang
+File: s1.cc
+Description:
+    The program, s1.cc, is supposed to locate the sphere in an image and computes
+    its center and radius. The threshold value is used on a grayscale image to
+    obtain a binary image.
+
+    It calculates the center of the sphere by finding the centroid of the circle.
+    The radius is determined by averaging the horizontal and vertical extents of the circle
+    and dividing by two.
+
+To run this program after compiling:
+    ./s1 <input gray-level sphere image> <threshold value> <output parameters file>
+    Ex: ./s1 sphere0.pgm 100 parameters.txt
+*/
 #include "image.h"
 #include <iostream>
 #include <fstream>

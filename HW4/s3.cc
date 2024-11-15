@@ -1,3 +1,19 @@
+/*
+Name: Kevin Fang
+File: s3.cc
+Description:
+    The program, s3.cc, is supposed to compute the surface normals and albedo of an object's surface
+    using three images taken with distinct light sources. Using the direction vectors of 
+    each light source from an input file, it calculates surface normals and albedo values 
+    at each pixel where the object is visible in all three images (above a specified brightness threshold).
+
+To run this program after compiling:
+    ./s3 <input directions filename> <input object image 1 filename> <input object image 2 filename>
+    <input object image 3 filename> <{input step parameter (integer greater than 0)>
+    <{input threshold parameter (integer greater than 0)> <output normals image filename> <output albedo image filename>
+
+    Ex: ./s3 directions.txt object1.pgm object2.pgm object3.pgm 10 80 normals_output.pgm albedo_output.pgm
+*/
 #include "image.h"
 #include <iostream>
 #include <fstream>
@@ -6,9 +22,7 @@
 
 using namespace ComputerVisionProjects;
 
-// Function to invert a 3x3 matrix
 bool InvertMatrix(const double S[3][3], double S_inv[3][3]) {
-    // Calculate the determinant of S
     double det = S[0][0] * (S[1][1] * S[2][2] - S[1][2] * S[2][1]) -
                  S[0][1] * (S[1][0] * S[2][2] - S[1][2] * S[2][0]) +
                  S[0][2] * (S[1][0] * S[2][1] - S[1][1] * S[2][0]);
@@ -20,7 +34,7 @@ bool InvertMatrix(const double S[3][3], double S_inv[3][3]) {
 
     double inv_det = 1.0 / det;
 
-    // Calculate the inverse using the formula for a 3x3 matrix
+    // Calculating the inverse
     S_inv[0][0] =  (S[1][1] * S[2][2] - S[1][2] * S[2][1]) * inv_det;
     S_inv[0][1] = -(S[0][1] * S[2][2] - S[0][2] * S[2][1]) * inv_det;
     S_inv[0][2] =  (S[0][1] * S[1][2] - S[0][2] * S[1][1]) * inv_det;
@@ -34,14 +48,12 @@ bool InvertMatrix(const double S[3][3], double S_inv[3][3]) {
     return true;
 }
 
-// Function to multiply a 3x3 matrix with a 3x1 vector
 void MultiplyMatrixVector(const double S_inv[3][3], const double I[3], double N[3]) {
     for (int i = 0; i < 3; ++i) {
         N[i] = S_inv[i][0] * I[0] + S_inv[i][1] * I[1] + S_inv[i][2] * I[2];
     }
 }
 
-// Function to scale values to range [0, 255]
 int ScaleTo255(double value, double max_value) {
     return static_cast<int>((value / max_value) * 255.0);
 }
@@ -63,7 +75,6 @@ int main(int argc, char *argv[]) {
     const std::string output_normals_filename(argv[7]);
     const std::string output_albedo_filename(argv[8]);
 
-    // Load the images
     Image image1, image2, image3;
     if (!ReadImage(image_filename1, &image1) ||
         !ReadImage(image_filename2, &image2) ||
@@ -72,7 +83,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Load directions
     double S[3][3];
     std::ifstream directions_file(directions_filename);
     if (!directions_file) {
@@ -83,14 +93,13 @@ int main(int argc, char *argv[]) {
         directions_file >> S[i][0] >> S[i][1] >> S[i][2];
     }
 
-    // Invert the directions matrix
+    // Inverting the directions matrix
     double S_inv[3][3];
     if (!InvertMatrix(S, S_inv)) {
         std::cerr << "Error inverting directions matrix.\n";
         return 1;
     }
 
-    // Prepare output images
     Image output_normals = image1;
     Image output_albedo;
     output_albedo.AllocateSpaceAndSetSize(image1.num_rows(), image1.num_columns());
@@ -98,7 +107,6 @@ int main(int argc, char *argv[]) {
     double max_albedo = 0.0;
     std::vector<std::vector<double>> albedo_values(image1.num_rows(), std::vector<double>(image1.num_columns(), 0.0));
 
-    // Calculate normals and albedo for each pixel
     for (size_t y = 0; y < image1.num_rows(); ++y) {
         for (size_t x = 0; x < image1.num_columns(); ++x) {
             int I1 = image1.GetPixel(y, x);
@@ -114,7 +122,6 @@ int main(int argc, char *argv[]) {
                 if (albedo > max_albedo) max_albedo = albedo;
                 albedo_values[y][x] = albedo;
 
-                // Normalize the normal vector
                 N[0] /= albedo;
                 N[1] /= albedo;
                 N[2] /= albedo;
@@ -122,9 +129,9 @@ int main(int argc, char *argv[]) {
                 if (x % step == 0 && y % step == 0) {
                     int nx = static_cast<int>(10 * N[0]);
                     int ny = static_cast<int>(10 * N[1]);
-                    output_normals.SetPixel(y, x, 0); // grid point in black
+                    output_normals.SetPixel(y, x, 0);
 
-                    // Draw the "needle" projection
+                    // Attempt to draw the needle
                     DrawLine(x, y, x + nx, y + ny, 255, &output_normals);
 
                 }
@@ -134,13 +141,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Scale albedo values and write to output image
     for (size_t y = 0; y < output_albedo.num_rows(); ++y) {
         for (size_t x = 0; x < output_albedo.num_columns(); ++x) {
             output_albedo.SetPixel(y, x, ScaleTo255(albedo_values[y][x], max_albedo));
         }
     }
 
+    // For error encounters and messages within terminal
     if (!WriteImage(output_normals_filename, output_normals)) {
         std::cerr << "Error writing normals image.\n";
         return 1;
