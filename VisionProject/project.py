@@ -51,6 +51,16 @@ def apply_wiener_filter(noisy_image, kernel_size=5):
     # Scale the result back to [0, 255] and convert to uint8
     return np.clip(deblurred_image * 255, 0, 255).astype(np.uint8)
 
+def apply_lucy_richardson(noisy_image, psf, iterations=30):
+    # Normalize the noisy image to the range [0, 1]
+    noisy_image_normalized = noisy_image / 255.0
+    
+    # Perform Lucy-Richardson deconvolution
+    deblurred_image = richardson_lucy(noisy_image_normalized, psf, num_iter=iterations)
+    
+    # Scale the result back to [0, 255] and convert to uint8
+    deblurred_image = np.clip(deblurred_image * 255, 0, 255).astype(np.uint8)
+    return deblurred_image
 
 def main():
     # Paths for input and output images
@@ -77,6 +87,13 @@ def main():
     # Step 4: Apply Wiener filtering
     deblurred_image_wiener = apply_wiener_filter(noisy_image, kernel_size=5)
     save_image(deblurred_image_wiener, os.path.join(output_dir, "deblurred_image_wiener.jpg"))
+    
+    # Step 5: Apply Lucy-Richardson deconvolution
+    psf = cv2.getGaussianKernel(15, 5)  # Create a Gaussian PSF matching the blur
+    psf = psf @ psf.T  # Convert 1D kernel to 2D
+
+    deblurred_image_lucy = apply_lucy_richardson(noisy_image, psf, iterations=30)
+    save_image(deblurred_image_lucy, os.path.join(output_dir, "deblurred_image_lucy.jpg"))
 
     
 if __name__ == "__main__":
