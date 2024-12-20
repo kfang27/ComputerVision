@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage.restoration import wiener
 from skimage.restoration import richardson_lucy
+from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
 
 def load_image(image_path):
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -62,6 +64,18 @@ def apply_lucy_richardson(noisy_image, psf, iterations=30):
     deblurred_image = np.clip(deblurred_image * 255, 0, 255).astype(np.uint8)
     return deblurred_image
 
+def calculate_psnr(original_image, processed_image):
+    """
+    Calculate PSNR between the original and processed images.
+    """
+    return psnr(original_image, processed_image, data_range=255)
+
+def calculate_ssim(original_image, processed_image):
+    """
+    Calculate SSIM between the original and processed images.
+    """
+    return ssim(original_image, processed_image, data_range=255)
+
 def main():
     # Paths for input and output images
     input_image_path = "image1.jpeg"  # Replace with your image path
@@ -87,6 +101,8 @@ def main():
     # Step 4: Apply Wiener filtering
     deblurred_image_wiener = apply_wiener_filter(noisy_image, kernel_size=5)
     save_image(deblurred_image_wiener, os.path.join(output_dir, "deblurred_image_wiener.jpg"))
+    deblurred_wiener = apply_wiener_filter(blurred_image, kernel_size=5)
+    save_image(deblurred_wiener, os.path.join(output_dir, "deblurred_wiener.jpg"))
     
     # Step 5: Apply Lucy-Richardson deconvolution
     psf = cv2.getGaussianKernel(15, 5)  # Create a Gaussian PSF matching the blur
@@ -94,6 +110,34 @@ def main():
 
     deblurred_image_lucy = apply_lucy_richardson(noisy_image, psf, iterations=30)
     save_image(deblurred_image_lucy, os.path.join(output_dir, "deblurred_image_lucy.jpg"))
+    deblurred_lucy = apply_lucy_richardson(blurred_image, psf, iterations=30)
+    save_image(deblurred_lucy, os.path.join(output_dir, "deblurred_lucy.jpg"))
+    
+    # Step 6: Compare the results using PSNR and SSIM
+    psnr_wiener = calculate_psnr(original_image, deblurred_image_wiener)
+    psnr_lucy = calculate_psnr(original_image, deblurred_image_lucy)
+    
+    # With blurred images only (not noisy)
+    psnr_wiener2 = calculate_psnr(original_image, deblurred_wiener)
+    psnr_lucy2 = calculate_psnr(original_image, deblurred_lucy)
+    
+    ssim_wiener = calculate_ssim(original_image, deblurred_image_wiener)
+    ssim_lucy = calculate_ssim(original_image, deblurred_image_lucy)
+    
+    ssim_wiener2 = calculate_ssim(original_image, deblurred_wiener)
+    ssim_lucy2 = calculate_ssim(original_image, deblurred_lucy)
+    
+    print(f"PSNR (Wiener Filter): {psnr_wiener:.2f}")
+    print(f"PSNR (Lucy-Richardson): {psnr_lucy:.2f}")
+    print(f"SSIM (Wiener Filter): {ssim_wiener:.2f}")
+    print(f"SSIM (Lucy-Richardson): {ssim_lucy:.2f}")
+    
+    
+    print(f"PSNR (Wiener Filter): {psnr_wiener2:.2f}")
+    print(f"PSNR (Lucy-Richardson): {psnr_lucy2:.2f}")
+    print(f"SSIM (Wiener Filter): {ssim_wiener2:.2f}")
+    print(f"SSIM (Lucy-Richardson): {ssim_lucy2:.2f}")
+
 
     
 if __name__ == "__main__":
